@@ -92,7 +92,7 @@ def apply_vanilla_rrt(space_region, starting_state, target_region, obstacle_map,
             if lies_in_area(m_new, target_region):
                 print('Target reached at i:', i)
                 final_state = m_new
-                # break
+                break
 
     if final_state is None:
         print("Target not reached.")
