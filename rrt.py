@@ -101,8 +101,13 @@ def apply_vanilla_rrt(space_region, starting_state, target_region, obstacle_map,
 
 # test
 start = (0, 0)
-target = ((50, 50), (5, 5))
-tree, final_state = apply_vanilla_rrt(((0, 0), (100, 100)), start, target, {}, d_threshold=1, n_samples=5000,
+target = ((55, 1), (5, 5))
+obstacle = {
+    1: ((3, 4), (2, 2)),
+    2: ((10, 20), (5, 5)),
+    3: ((50, 7), (15, 15))
+}
+tree, final_state = apply_vanilla_rrt(((0, 0), (60, 60)), start, target, obstacle, d_threshold=1, n_samples=5000,
                                       granularity=0.2)
 
 # plot the tree
@@ -111,6 +116,10 @@ fig = plt.figure()
 ax = fig.add_subplot(111, aspect='equal')
 plt.plot(nodes[:, 0], nodes[:, 1], 'bo', ms=1)
 
-rect = patches.Rectangle(target[0], target[1][0], target[1][1], linewidth=1, edgecolor='r', facecolor='none')
-ax.add_patch(rect)
+target_rect = patches.Rectangle(target[0], target[1][0], target[1][1], linewidth=1, edgecolor='g', facecolor='none')
+ax.add_patch(target_rect)
+
+for val in obstacle.values():
+    ax.add_patch(patches.Rectangle(val[0], val[1][0], val[1][1], linewidth=1, edgecolor='r', facecolor='none'))
+
 plt.show()
