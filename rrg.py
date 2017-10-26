@@ -55,6 +55,13 @@ def dist(m_g, m_new):
     return d
 
 
+def nearest_neighbours(graph, m_new, r):
+    nodes = list(graph.nodes())
+    d = dist(nodes, m_new)
+    nearest_nodes = np.array(nodes)[d < r]
+    return tuple(map(tuple, nearest_nodes))
+
+
 def lies_in_area(m_new, area):
     frame, _range = area
     frame = np.array(frame)
@@ -65,8 +72,8 @@ def lies_in_area(m_new, area):
     return np.all(diff <= _range) and np.all(diff >= 0)
 
 
-def apply_vanilla_rrt(space_region, starting_state, target_region, obstacle_map, granularity=0.1, d_threshold=0.5,
-                      n_samples=1000, use_bias=False):
+def apply_vanilla_rrg(space_region, starting_state, target_region, obstacle_map, n_samples=1000, granularity=0.1,
+                      d_threshold=0.5, ball_radius=2, use_bias=False):
     tree = nx.DiGraph()
     tree.add_node(starting_state)
 
@@ -83,16 +90,23 @@ def apply_vanilla_rrt(space_region, starting_state, target_region, obstacle_map,
         if not lies_in_area(m_new, space_region):
             continue
 
-        # check if path between(m_g,m_new) defined by motion-model is collision free
-        is_free = is_collision_free(m_g, m_new, obstacle_map, granularity)
+        # find k nearest neighbours
+        m_near = nearest_neighbours(tree, m_new, r=ball_radius)
 
-        # if path is free, add new node to tree
-        if is_free:
-            tree.add_weighted_edges_from([(m_g, m_new, dist(m_g, m_new))])
-            if lies_in_area(m_new, target_region):
-                print('Target reached at i:', i)
-                final_state = m_new
-                break
+        for m_g in m_near:
+
+            # check if path between(m_g,m_new) defined by motion-model is collision free
+            is_free = is_collision_free(m_g, m_new, obstacle_map, granularity)
+
+            # if path is free, add new node to tree
+            if is_free:
+                tree.add_weighted_edges_from([(m_g, m_new, dist(m_g, m_new))])
+
+        # if target is reached, return the tree and final state
+        if lies_in_area(m_new, target_region):
+            print('Target reached at i:', i)
+            final_state = m_new
+            break
 
     if final_state is None:
         print("Target not reached.")
@@ -107,7 +121,7 @@ obstacle = {
     2: ((10, 20), (5, 5)),
     3: ((50, 7), (15, 15))
 }
-tree, final_state = apply_vanilla_rrt(((0, 0), (60, 60)), start, target, obstacle, d_threshold=1, n_samples=15000,
+tree, final_state = apply_vanilla_rrg(((0, 0), (60, 60)), start, target, obstacle, d_threshold=0.5, n_samples=3000,
                                       granularity=0.2)
 
 # plot the tree
@@ -122,6 +136,7 @@ for val in obstacle.values():
     ax.add_patch(patches.Rectangle(val[0], val[1][0], val[1][1], linewidth=1, edgecolor='r', facecolor='r'))
 
 plt.plot(nodes[:, 0], nodes[:, 1], 'bo', ms=1)
+
 if final_state is not None:
     path = nx.shortest_path(tree, start, final_state)
     plt.plot(np.array(path)[:, 0], np.array(path)[:, 1], 'g-', ms=1)
