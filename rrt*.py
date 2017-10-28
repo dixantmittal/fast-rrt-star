@@ -3,6 +3,12 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+# performance is deeply affected by granularity, d_threshold and ball radius, so choose the values according to the use case
+# > more ball_radius = better path and more computation time
+# > less granularity = finer check for collision and more computation time
+# > more the d_threshold, more rapidly it will explore the space, may result in more collisions
+
+collision_cache = {}
 
 def select_node_to_expand(tree, space_range, use_bias):
     space_range = np.asarray(space_range)
@@ -31,15 +37,30 @@ def is_obstacle_space(m_new, obstacle_map):
 
 
 def is_collision_free(m_g, m_new, obstacle_map, granularity):
-    if dist(m_g, m_new) <= granularity:
-        return True
-
-    if is_obstacle_space(m_new, obstacle_map):
+    if collision_cache.get(m_new, False):
         return False
 
-    return is_collision_free(m_g, tuple((np.asarray(m_g) + np.asarray(m_new)) / 2), obstacle_map, granularity) \
-           and is_collision_free(tuple((np.asarray(m_g) + np.asarray(m_new)) / 2), m_new, obstacle_map, granularity)
+    if is_obstacle_space(m_new, obstacle_map):
+        collision_cache[m_new] = True
+        return False
 
+    m_g = np.array(m_g)
+    m_new = np.array(m_new)
+    d = np.asscalar(dist(m_g, m_new))
+    unit_vector = (m_new - m_g) / d
+    floor = int(np.floor(d / granularity))
+
+    for i in range(floor):
+        _m = m_g + i * granularity * unit_vector
+
+        if collision_cache.get(tuple(_m), False):
+            return False
+
+        if is_obstacle_space(_m, obstacle_map):
+            collision_cache[tuple(_m)] = True
+            return False
+
+    return True
 
 def dist(m_g, m_new):
     m_g = np.array(m_g)
@@ -83,6 +104,7 @@ def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_
     cost = {starting_state: 0}
 
     for i in range(n_samples):
+        print(i)
         # select node to expand
         m_g, random_point = select_node_to_expand(tree, space_region, use_bias)
 
@@ -157,9 +179,9 @@ obstacle = {
     2: ((10, 20), (5, 5)),
     3: ((25, 7), (5, 5))
 }
-tree, final_state = apply_rrt_star(((0, 0), (40, 40)), start, target, obstacle, ball_radius=4, d_threshold=0.5,
+tree, final_state = apply_rrt_star(((0, 0), (40, 40)), start, target, obstacle, ball_radius=5, d_threshold=1,
                                    n_samples=5000,
-                                   granularity=0.2)
+                                   granularity=0.25)
 
 # plot the tree
 nodes = np.asarray(list(tree.nodes))
