@@ -3,12 +3,26 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-# performance is deeply affected by granularity, d_threshold and ball radius, so choose the values according to the use case
-# > more ball_radius = better path and more computation time
-# > less granularity = finer check for collision and more computation time
-# > more the d_threshold, more rapidly it will explore the space, may result in more collisions
+"""performance is deeply affected by granularity, d_threshold and ball radius, so choose the values according to the 
+use case > more ball_radius = better path and more computation time > less granularity = finer check for collision 
+and more computation time > more the d_threshold, more rapidly it will explore the space, may result in more 
+collisions. """
 
 collision_cache = {}
+
+volume_of_unit_ball = {
+    1: 2,
+    2: 3.142,
+    3: 4.189,
+    4: 4.935,
+    5: 5.264,
+    6: 5.168,
+    7: 4.725,
+    8: 4.059,
+    9: 3.299,
+    10: 2.550
+}
+
 
 def select_node_to_expand(tree, space_range, use_bias):
     space_range = np.asarray(space_range)
@@ -62,6 +76,7 @@ def is_collision_free(m_g, m_new, obstacle_map, granularity):
 
     return True
 
+
 def dist(m_g, m_new):
     m_g = np.array(m_g)
     m_new = np.array(m_new)
@@ -94,9 +109,11 @@ def lies_in_area(m_new, area):
 
 
 def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_samples=1000, granularity=0.1,
-                   d_threshold=0.5, ball_radius=2., use_bias=False):
+                   d_threshold=0.5, ball_radius_factor=2., use_bias=False):
     tree = nx.DiGraph()
     tree.add_node(starting_state)
+
+    space_dim = len(starting_state)
 
     final_state = None
 
@@ -120,7 +137,9 @@ def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_
             continue
 
         # find k nearest neighbours
-        m_near = nearest_neighbours(tree, m_new, r=ball_radius)
+        radius = np.minimum(np.power(ball_radius_factor / volume_of_unit_ball[space_dim] * np.log(i + 1) / (i + 1),
+                                     1 / space_dim), d_threshold)
+        m_near = nearest_neighbours(tree, m_new, r=radius)
 
         min_cost = m_g
         d_min_cost = dist(m_g, m_new)
@@ -172,16 +191,15 @@ def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_
 
 
 # test
-start = (0, 0)
-target = ((30, 10), (2, 2))
+start = (20, 20)
+target = ((30, 10), (5, 5))
 obstacle = {
     1: ((3, 4), (2, 2)),
-    2: ((10, 20), (5, 5)),
+    2: ((10, 7), (5, 5)),
     3: ((25, 7), (5, 5))
 }
-tree, final_state = apply_rrt_star(((0, 0), (40, 40)), start, target, obstacle, ball_radius=5, d_threshold=1,
-                                   n_samples=5000,
-                                   granularity=0.25)
+tree, final_state = apply_rrt_star(((0, 0), (40, 40)), start, target, obstacle, ball_radius_factor=100, d_threshold=3,
+                                   n_samples=5000, granularity=0.1)
 
 # plot the tree
 nodes = np.asarray(list(tree.nodes))
@@ -194,9 +212,13 @@ ax.add_patch(target_rect)
 for val in obstacle.values():
     ax.add_patch(patches.Rectangle(val[0], val[1][0], val[1][1], linewidth=1, edgecolor='r', facecolor='r'))
 
-plt.plot(nodes[:, 0], nodes[:, 1], 'bo', ms=1)
+edges = list(tree.edges)
+for edge in edges:
+    edge = np.array(edge).transpose()
+    plt.plot(edge[0], edge[1], 'c-', edge[0], edge[1], 'bo', ms=1)
+# plt.plot(nodes[:, 0], nodes[:, 1], 'bo', ms=1)
 
 if final_state is not None:
     path = nx.shortest_path(tree, start, final_state)
-    plt.plot(np.array(path)[:, 0], np.array(path)[:, 1], 'g-', ms=1)
+    plt.plot(np.array(path)[:, 0], np.array(path)[:, 1], 'g-', ms=2)
 plt.show()

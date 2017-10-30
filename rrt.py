@@ -100,15 +100,15 @@ def apply_vanilla_rrt(space_region, starting_state, target_region, obstacle_map,
 
 
 # test
-start = (0, 0)
+start = (20, 20)
 target = ((30, 10), (2, 2))
 obstacle = {
     1: ((3, 4), (2, 2)),
-    2: ((10, 20), (5, 5)),
+    2: ((10, 7), (5, 5)),
     3: ((25, 7), (5, 5))
 }
-tree, final_state = apply_vanilla_rrt(((0, 0), (40, 40)), start, target, obstacle, d_threshold=0.5, n_samples=5000,
-                                   granularity=0.2)
+tree, final_state = apply_vanilla_rrt(((0, 0), (40, 40)), start, target, obstacle, d_threshold=1., n_samples=5000,
+                                      granularity=0.1)
 
 # plot the tree
 nodes = np.asarray(list(tree.nodes))
@@ -121,7 +121,11 @@ ax.add_patch(target_rect)
 for val in obstacle.values():
     ax.add_patch(patches.Rectangle(val[0], val[1][0], val[1][1], linewidth=1, edgecolor='r', facecolor='r'))
 
-plt.plot(nodes[:, 0], nodes[:, 1], 'bo', ms=1)
+edges = list(tree.edges)
+for edge in edges:
+    edge = np.array(edge).transpose()
+    plt.plot(edge[0], edge[1], 'b-', ms=1)
+# plt.plot(nodes[:, 0], nodes[:, 1], 'bo', ms=1)
 if final_state is not None:
     path = nx.shortest_path(tree, start, final_state)
     plt.plot(np.array(path)[:, 0], np.array(path)[:, 1], 'g-', ms=1)
