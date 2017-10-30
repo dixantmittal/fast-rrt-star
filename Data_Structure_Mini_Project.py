@@ -205,10 +205,10 @@ def checkIntersectCircle(circle, obstacle):
     x_end_circle = circle.x_coord + radius
     y_start_circle = circle.y_coord - radius
     y_end_circle = circle.y_coord + radius
-    if(contained(Point(x_start_circle,y_start_circle),o) and
-       contained(Point(x_start_circle,y_end_circle),o) and
-       contained(Point(x_end_circle,y_start_circle),o) and
-       contained(Point(x_end_circle,y_end_circle),o)):
+    if(contained(Point(x_start_circle,y_start_circle,0),obstacle) and
+       contained(Point(x_start_circle,y_end_circle,0),obstacle) and
+       contained(Point(x_end_circle,y_start_circle,0),obstacle) and
+       contained(Point(x_end_circle,y_end_circle,0),obstacle)):
         return True
     y_possible = [obstacle.y_start, obstacle.y_end]
     x_possible = [obstacle.x_start, obstacle.x_end]
