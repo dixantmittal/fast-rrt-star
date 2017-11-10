@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from datetime import datetime
 
 """performance is deeply affected by granularity, d_threshold and ball radius, so choose the values according to the 
 use case > more ball_radius = better path and more computation time > less granularity = finer check for collision 
@@ -36,6 +37,8 @@ def sample_new_point(m_g, random_point, d_threshold):
     m_g = np.asarray(m_g)
     random_point = np.asarray(random_point)
     d = dist(m_g, random_point)
+    if d <= d_threshold:
+        return tuple(random_point)
     m_new = m_g + d_threshold * (random_point - m_g) / d
     return tuple(m_new)
 
@@ -108,8 +111,22 @@ def lies_in_area(m_new, area):
     return np.all(diff <= _range) and np.all(diff >= 0)
 
 
+def find_free_space(space_region, obstacle_map):
+    _, space_range = space_region
+    l, b = space_range
+    space_area = l * b
+
+    obstacle_area = 0
+    for obstacle in obstacle_map.values():
+        _, obstacle_range = obstacle
+        l, b = obstacle_range
+        obstacle_area += l * b
+
+    return space_area - obstacle_area
+
+
 def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_samples=1000, granularity=0.1,
-                   d_threshold=0.5, ball_radius_factor=2., use_bias=False):
+                   d_threshold=0.5, use_bias=False):
     tree = nx.DiGraph()
     tree.add_node(starting_state)
 
@@ -120,8 +137,10 @@ def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_
     # cost for each vertex
     cost = {starting_state: 0}
 
+    gamma = 1 + np.power(2, space_dim) * (1 + 1.0 / space_dim) * find_free_space(space_region, obstacle_map)
+
     for i in range(n_samples):
-        print(i)
+        # print(i)
         # select node to expand
         m_g, random_point = select_node_to_expand(tree, space_region, use_bias)
 
@@ -137,7 +156,7 @@ def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_
             continue
 
         # find k nearest neighbours
-        radius = np.minimum(np.power(ball_radius_factor / volume_of_unit_ball[space_dim] * np.log(i + 1) / (i + 1),
+        radius = np.minimum(np.power(gamma / volume_of_unit_ball[space_dim] * np.log(i + 1) / (i + 1),
                                      1 / space_dim), d_threshold)
         m_near = nearest_neighbours(tree, m_new, r=radius)
 
@@ -182,8 +201,11 @@ def apply_rrt_star(space_region, starting_state, target_region, obstacle_map, n_
         # if target is reached, return the tree and final state
         if lies_in_area(m_new, target_region):
             print('Target reached at i:', i)
-            final_state = m_new
-            break
+            if final_state is None:
+                final_state = m_new
+            elif cost[m_new] < cost[final_state]:
+                final_state = m_new
+
 
     if final_state is None:
         print("Target not reached.")
@@ -198,15 +220,18 @@ obstacle = {
     2: ((10, 7), (5, 5)),
     3: ((25, 7), (5, 5))
 }
-tree, final_state = apply_rrt_star(((0, 0), (40, 40)), start, target, obstacle, ball_radius_factor=100, d_threshold=3,
-                                   n_samples=5000, granularity=0.1)
+
+t = datetime.now()
+tree, final_state = apply_rrt_star(((0, 0), (40, 40)), start, target, obstacle, d_threshold=3,
+                                   n_samples=1000, granularity=0.5)
+print('total time taken: ', datetime.now() - t)
 
 # plot the tree
 nodes = np.asarray(list(tree.nodes))
 fig = plt.figure()
 ax = fig.add_subplot(111, aspect='equal')
 
-target_rect = patches.Rectangle(target[0], target[1][0], target[1][1], linewidth=1, edgecolor='g', facecolor='none')
+target_rect = patches.Rectangle(target[0], target[1][0], target[1][1], linewidth=1, edgecolor='g', facecolor='g')
 ax.add_patch(target_rect)
 
 for val in obstacle.values():
