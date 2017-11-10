@@ -34,6 +34,8 @@ def apply_rrt(space_region, starting_state, target_region, obstacle_map, granula
                 print('Target reached at i:', i)
                 if min_cost is None:
                     final_state = m_new
+                    if not find_optimal:
+                        break
                 else:
                     # if new final state has shorter cost, set it as final state
                     cost = nx.shortest_path_length(tree, starting_state, m_new)
