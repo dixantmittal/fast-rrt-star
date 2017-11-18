@@ -9,7 +9,7 @@ def select_node_to_expand(tree, space_range):
     return nodes[np.asscalar(np.argmin(d))], random_point
 
 
-def sample_new_point_unconstrained(m_g, random_point, d_threshold):
+def sample_new_point(m_g, random_point, d_threshold):
     m_g = np.asarray(m_g)
     random_point = np.asarray(random_point)
     d = cartesian_distance(m_g, random_point)

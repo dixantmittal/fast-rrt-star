@@ -37,9 +37,9 @@ def get_random_target_state(space_region, obstacle_map):
 
         # checking only 2 corners.
         if lies_in_area(target_origin, obstacle):
-            return get_random_initial_state(space_region, obstacle_map)
+            return get_random_target_state(space_region, obstacle_map)
         if lies_in_area(target_origin + target_range, obstacle):
-            return get_random_initial_state(space_region, obstacle_map)
+            return get_random_target_state(space_region, obstacle_map)
 
     return (tuple(target_origin), tuple(target_range))
 

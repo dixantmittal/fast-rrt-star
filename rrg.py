@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from utils import *
 from commons import *
+from tqdm import tqdm
 
 
 def apply_rrg(space_region, starting_state, target_region, obstacle_map, n_samples=1000, granularity=0.1,
@@ -17,12 +18,12 @@ def apply_rrg(space_region, starting_state, target_region, obstacle_map, n_sampl
 
     gamma = 1 + np.power(2, space_dim) * (1 + 1.0 / space_dim) * get_free_area(space_region, obstacle_map)
 
-    for i in range(n_samples):
+    for i in tqdm(range(n_samples)):
         # select node to expand
         m_g, random_point = select_node_to_expand(tree, space_region)
 
         # sample a new point
-        m_new = sample_new_point_unconstrained(m_g, random_point, d_threshold)
+        m_new = sample_new_point(m_g, random_point, d_threshold)
 
         # check if m_new lies in space_region
         if not lies_in_area(m_new, space_region):
