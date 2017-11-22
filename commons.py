@@ -12,8 +12,12 @@ def select_node_to_expand(tree, space_range):
 def sample_new_point(m_g, random_point, d_threshold):
     m_g = np.asarray(m_g)
     random_point = np.asarray(random_point)
+
+    # get distance to random point
     d = cartesian_distance(m_g, random_point)
     if d <= d_threshold:
         return tuple(random_point)
+
+    # rescale the point
     m_new = m_g + d_threshold * (random_point - m_g) / d
     return tuple(m_new)

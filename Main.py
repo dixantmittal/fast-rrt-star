@@ -14,7 +14,7 @@ target = get_random_target_state(space_region, obstacle)
 
 print('Starting RRT*')
 t = datetime.now()
-rrt_star, rrt_star_final_state = apply_rrt_star(space_region=space_region,
+rrt_star, rrt_star_final_state = apply_rrt_star(state_space=space_region,
                                                 starting_state=start,
                                                 target_region=target,
                                                 obstacle_map=obstacle,
@@ -25,7 +25,7 @@ print('total time taken: ', datetime.now() - t)
 
 print('Starting RRT')
 t = datetime.now()
-rrt, rrt_final_state = apply_rrt(space_region=space_region,
+rrt, rrt_final_state = apply_rrt(state_space=space_region,
                                  starting_state=start,
                                  target_region=target,
                                  obstacle_map=obstacle,

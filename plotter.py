@@ -29,7 +29,6 @@ def plot(graph, start_state, end_state, target_region, obstacle_map, title, id, 
         plt.plot(np.array(path)[:, 0], np.array(path)[:, 1], 'k-', ms=3, label='Returned Path')
     plt.title(title)
     plt.legend()
-    plt.show()
     save = input('Do you want to save the graphs? ')
     if save == 'y' or save == 'Y':
         plt.savefig('plots/' + str(id) + '_' + title + '.png')
