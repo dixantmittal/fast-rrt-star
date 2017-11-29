@@ -1,4 +1,4 @@
-from rrt_star import *
+from fast_rrt_star import *
 from rrg import *
 from rrt import *
 from datetime import datetime
