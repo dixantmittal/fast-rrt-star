@@ -1,11 +1,10 @@
 import numpy as np
 import networkx as nx
-from utils import *
 from commons import *
 from tqdm import tqdm
 
 
-def apply_rrt(state_space, starting_state, target_region, obstacle_map, granularity=0.1, d_threshold=0.5,
+def apply_rrt(state_space, starting_state, target_space, obstacle_map, granularity=0.1, d_threshold=0.5,
               n_samples=1000, find_optimal=True):
     tree = nx.DiGraph()
     tree.add_node(starting_state)
@@ -31,7 +30,7 @@ def apply_rrt(state_space, starting_state, target_region, obstacle_map, granular
 
         # if path is free, add new node to tree
         tree.add_weighted_edges_from([(m_g, m_new, cartesian_distance(m_g, m_new))])
-        if lies_in_area(m_new, target_region):
+        if lies_in_area(m_new, target_space):
             if final_state is None:
                 final_state = m_new
                 min_cost = nx.dijkstra_path_length(tree, starting_state, m_new)

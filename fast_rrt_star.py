@@ -1,6 +1,5 @@
 import numpy as np
 import networkx as nx
-from utils import *
 from commons import *
 from tqdm import tqdm
 
@@ -10,7 +9,7 @@ and more computation time > more the d_threshold, more rapidly it will explore t
 collisions. """
 
 
-def apply_rrt_star(state_space, starting_state, target_region, obstacle_map, n_samples=1000, granularity=0.1,
+def apply_rrt_star(state_space, starting_state, target_space, obstacle_map, n_samples=5000, granularity=0.1,
                    d_threshold=0.5):
     tree = nx.DiGraph()
     tree.add_node(starting_state)
@@ -92,7 +91,7 @@ def apply_rrt_star(state_space, starting_state, target_region, obstacle_map, n_s
                     cost[m_g] = c
 
         # if target is reached, return the tree and final state
-        if lies_in_area(m_new, target_region):
+        if lies_in_area(m_new, target_space):
             cost = nx.single_source_dijkstra_path_length(tree, starting_state)
             if final_state is None:
                 final_state = m_new

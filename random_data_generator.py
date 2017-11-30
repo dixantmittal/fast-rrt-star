@@ -1,5 +1,5 @@
 import numpy as np
-from utils import *
+from commons import *
 
 obstacle_range_factor = (10, 10)
 target_range_factor = (2, 2)

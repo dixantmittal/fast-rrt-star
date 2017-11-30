@@ -16,7 +16,7 @@ print('Starting RRT*')
 t = datetime.now()
 rrt_star, rrt_star_final_state = apply_rrt_star(state_space=space_region,
                                                 starting_state=start,
-                                                target_region=target,
+                                                target_space=target,
                                                 obstacle_map=obstacle,
                                                 d_threshold=5,
                                                 n_samples=5000,
@@ -27,7 +27,7 @@ print('Starting RRT')
 t = datetime.now()
 rrt, rrt_final_state = apply_rrt(state_space=space_region,
                                  starting_state=start,
-                                 target_region=target,
+                                 target_space=target,
                                  obstacle_map=obstacle,
                                  d_threshold=5,
                                  n_samples=5000,

@@ -1,6 +1,5 @@
 import numpy as np
 import networkx as nx
-from utils import *
 from commons import *
 from tqdm import tqdm
 
